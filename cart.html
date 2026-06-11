@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart — MiniShop</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .page-header { background:var(--navy); color:var(--white); padding:2.5rem 2.5rem 2rem; }
+    .page-header h1 { font-family:var(--font-display); font-size:1.9rem; font-weight:800; }
+    .page-header p  { color:rgba(255,255,255,0.6); margin-top:0.3rem; font-size:0.9rem; }
+
+    /* ── Stepper ── */
+    .checkout-stepper {
+      background:var(--white); border-bottom:1px solid var(--border);
+      padding:1rem 2.5rem; display:flex; align-items:center;
+      justify-content:center; gap:0; max-width:100%;
+    }
+    .step {
+      display:flex; align-items:center; gap:0.5rem;
+      font-family:var(--font-display); font-size:0.82rem; font-weight:700;
+      color:var(--grey);
+    }
+    .step-num {
+      width:28px; height:28px; border-radius:50%;
+      border:2px solid var(--border); display:flex;
+      align-items:center; justify-content:center;
+      font-size:0.78rem; font-weight:700; background:var(--white);
+      flex-shrink:0; transition:all 0.2s;
+    }
+    .step.active { color:var(--navy); }
+    .step.active .step-num { border-color:var(--coral); background:var(--coral); color:var(--white); }
+    .step.done { color:var(--coral); }
+    .step.done .step-num { border-color:var(--coral); background:var(--coral); color:var(--white); }
+    .step-line { width:60px; height:2px; background:var(--border); margin:0 0.5rem; flex-shrink:0; }
+    .step-line.done { background:var(--coral); }
+
+    /* ── Layout ── */
+    .cart-wrapper {
+      max-width:1140px; margin:2rem auto; padding:0 2.5rem;
+      display:grid; grid-template-columns:1fr 340px;
+      gap:2rem; align-items:start;
+    }
+
+    /* ── Steps (panels) ── */
+    .checkout-step-panel { display:none; }
+    .checkout-step-panel.active { display:block; }
+
+    /* ── Cart Items Panel ── */
+    .cart-items-panel {
+      background:var(--white); border-radius:var(--radius);
+      box-shadow:var(--shadow); overflow:hidden;
+    }
+    .cart-panel-head {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:1.2rem 1.5rem; border-bottom:1px solid var(--border);
+    }
+    .cart-panel-head h2 { font-family:var(--font-display); font-size:1rem; font-weight:700; color:var(--navy); }
+    .clear-cart-btn {
+      background:none; border:1px solid #e74c3c; color:#e74c3c;
+      padding:0.35rem 0.85rem; border-radius:50px; font-size:0.78rem;
+      font-family:var(--font-display); font-weight:600; cursor:pointer;
+      transition:background 0.2s, color 0.2s;
+    }
+    .clear-cart-btn:hover { background:#e74c3c; color:var(--white); }
+
+    .cart-item {
+      display:flex; align-items:center; gap:1rem;
+      padding:1.2rem 1.5rem; border-bottom:1px solid var(--border);
+      transition:background 0.2s; animation:fadeSlideIn 0.3s ease;
+    }
+    .cart-item:last-child { border-bottom:none; }
+    .cart-item:hover { background:#fafafa; }
+
+    @keyframes fadeSlideIn {
+      from { opacity:0; transform:translateY(-8px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .cart-item-img {
+      width:72px; height:72px; border-radius:8px; object-fit:cover;
+      background:var(--cream); flex-shrink:0; display:flex;
+      align-items:center; justify-content:center; font-size:1.8rem;
+      overflow:hidden;
+    }
+    .cart-item-img img { width:100%; height:100%; object-fit:cover; }
+    .cart-item-info { flex:1; min-width:0; }
+    .cart-item-name {
+      font-family:var(--font-display); font-size:0.95rem; font-weight:700;
+      color:var(--navy); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .cart-item-unit { font-size:0.82rem; color:var(--grey); margin-top:2px; }
+    .cart-item-subtotal { font-size:0.9rem; font-weight:600; color:var(--coral); margin-top:4px; }
+
+    .qty-control {
+      display:flex; align-items:center; border:1.5px solid var(--border);
+      border-radius:50px; overflow:hidden; flex-shrink:0;
+    }
+    .qty-control button {
+      background:none; border:none; width:32px; height:32px; font-size:1rem;
+      cursor:pointer; color:var(--navy); transition:background 0.15s;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .qty-control button:hover { background:var(--cream); }
+    .qty-control .qty-val {
+      min-width:28px; text-align:center; font-size:0.9rem;
+      font-weight:600; color:var(--navy); font-family:var(--font-display);
+    }
+
+    .remove-btn {
+      background:none; border:none; color:#bbb; font-size:1.1rem;
+      cursor:pointer; padding:0.4rem; border-radius:50%;
+      transition:color 0.2s, background 0.2s; flex-shrink:0;
+    }
+    .remove-btn:hover { color:#e74c3c; background:#ffeaea; }
+
+    .cart-empty {
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; padding:4rem 2rem; color:var(--grey);
+      gap:0.75rem; text-align:center;
+    }
+    .cart-empty i { font-size:3.5rem; color:#ddd; }
+    .cart-empty h3 { font-family:var(--font-display); font-size:1.1rem; color:var(--navy); font-weight:700; }
+    .cart-empty a {
+      display:inline-block; margin-top:0.5rem; background:var(--coral);
+      color:var(--white); padding:0.6rem 1.5rem; border-radius:50px;
+      font-family:var(--font-display); font-weight:600; font-size:0.875rem;
+      text-decoration:none; transition:background 0.2s;
+    }
+    .cart-empty a:hover { background:var(--coral-dk); }
+
+    /* ── Address Form Panel ── */
+    .address-panel {
+      background:var(--white); border-radius:var(--radius);
+      box-shadow:var(--shadow); overflow:hidden;
+    }
+    .address-panel-head {
+      padding:1.2rem 1.5rem; border-bottom:1px solid var(--border);
+      font-family:var(--font-display); font-size:1rem; font-weight:700; color:var(--navy);
+      display:flex; align-items:center; gap:0.5rem;
+    }
+    .address-panel-head i { color:var(--coral); }
+
+    .address-form {
+      padding:1.5rem; display:grid;
+      grid-template-columns:1fr 1fr; gap:1rem;
+    }
+    .form-field { display:flex; flex-direction:column; gap:0.35rem; }
+    .form-field.full { grid-column:1 / -1; }
+    .form-field label {
+      font-size:0.8rem; font-weight:700; color:var(--navy);
+      font-family:var(--font-display);
+    }
+    .form-field label span { color:#e74c3c; }
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      padding:0.7rem 1rem; border:1.5px solid var(--border);
+      border-radius:10px; font-family:var(--font-body); font-size:0.875rem;
+      outline:none; transition:border-color 0.2s, background 0.2s;
+      background:var(--cream); color:var(--navy);
+    }
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus { border-color:var(--coral); background:var(--white); }
+    .form-field input.error,
+    .form-field select.error { border-color:#e74c3c; }
+    .form-field .err-msg { font-size:0.75rem; color:#e74c3c; display:none; }
+    .form-field.has-error .err-msg { display:block; }
+    .form-field.has-error input,
+    .form-field.has-error select { border-color:#e74c3c; }
+
+    /* Saved address chips */
+    .saved-addresses {
+      padding:1rem 1.5rem 0; display:flex; flex-wrap:wrap; gap:0.6rem;
+    }
+    .addr-chip {
+      border:1.5px solid var(--border); border-radius:10px;
+      padding:0.5rem 0.85rem; font-size:0.78rem; cursor:pointer;
+      font-family:var(--font-display); font-weight:600; color:var(--grey);
+      transition:all 0.2s; display:flex; align-items:center; gap:0.4rem;
+      background:var(--white);
+    }
+    .addr-chip:hover { border-color:var(--coral); color:var(--coral); }
+    .addr-chip.active { background:var(--coral); border-color:var(--coral); color:var(--white); }
+    .addr-chip i { font-size:0.75rem; }
+
+    /* Address type toggle */
+    .addr-type-row { display:flex; gap:0.6rem; padding:1rem 1.5rem 0; }
+    .addr-type-btn {
+      padding:0.4rem 1rem; border-radius:50px; border:1.5px solid var(--border);
+      font-family:var(--font-display); font-size:0.78rem; font-weight:700;
+      cursor:pointer; background:var(--white); color:var(--grey);
+      transition:all 0.2s; display:flex; align-items:center; gap:0.35rem;
+    }
+    .addr-type-btn:hover { border-color:var(--coral); color:var(--coral); }
+    .addr-type-btn.active { background:var(--navy); border-color:var(--navy); color:var(--white); }
+
+    /* Delivery options */
+    .delivery-options { padding:1rem 1.5rem 0; }
+    .delivery-options h4 {
+      font-family:var(--font-display); font-size:0.82rem; font-weight:700;
+      color:var(--grey); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.75rem;
+    }
+    .delivery-opt {
+      display:flex; align-items:center; gap:0.75rem; padding:0.9rem 1rem;
+      border:1.5px solid var(--border); border-radius:10px; cursor:pointer;
+      margin-bottom:0.6rem; transition:all 0.2s; background:var(--white);
+    }
+    .delivery-opt:hover { border-color:var(--coral); }
+    .delivery-opt.selected { border-color:var(--coral); background:#fff5f3; }
+    .delivery-opt input[type="radio"] { accent-color:var(--coral); width:16px; height:16px; flex-shrink:0; }
+    .delivery-opt-info { flex:1; }
+    .delivery-opt-title { font-family:var(--font-display); font-size:0.88rem; font-weight:700; color:var(--navy); }
+    .delivery-opt-sub { font-size:0.78rem; color:var(--grey); margin-top:2px; }
+    .delivery-opt-price { font-family:var(--font-display); font-weight:800; font-size:0.9rem; color:var(--coral); flex-shrink:0; }
+
+    /* Payment method */
+    .payment-options { padding:1rem 1.5rem; }
+    .payment-options h4 {
+      font-family:var(--font-display); font-size:0.82rem; font-weight:700;
+      color:var(--grey); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.75rem;
+    }
+    .payment-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; }
+    .pay-opt {
+      display:flex; align-items:center; gap:0.6rem; padding:0.75rem 1rem;
+      border:1.5px solid var(--border); border-radius:10px; cursor:pointer;
+      transition:all 0.2s; background:var(--white);
+    }
+    .pay-opt:hover { border-color:var(--coral); }
+    .pay-opt.selected { border-color:var(--coral); background:#fff5f3; }
+    .pay-opt input[type="radio"] { accent-color:var(--coral); width:15px; height:15px; flex-shrink:0; }
+    .pay-opt-label { font-family:var(--font-display); font-size:0.82rem; font-weight:700; color:var(--navy); }
+    .pay-opt i { color:var(--grey); font-size:1rem; flex-shrink:0; }
+
+    /* Order Summary Panel */
+    .order-summary {
+      background:var(--white); border-radius:var(--radius);
+      box-shadow:var(--shadow); padding:1.5rem;
+      position:sticky; top:88px;
+    }
+    .order-summary h2 {
+      font-family:var(--font-display); font-size:1rem; font-weight:700;
+      margin-bottom:1.25rem; color:var(--navy);
+    }
+    .summary-row {
+      display:flex; justify-content:space-between;
+      font-size:0.875rem; color:var(--grey); margin-bottom:0.7rem;
+    }
+    .summary-row span:last-child { color:var(--navy); font-weight:500; }
+    .summary-divider { border:none; border-top:1px solid var(--border); margin:1rem 0; }
+    .summary-total {
+      display:flex; justify-content:space-between;
+      font-family:var(--font-display); font-size:1.05rem;
+      font-weight:800; color:var(--navy); margin-bottom:1.4rem;
+    }
+    .summary-total span:last-child { color:var(--coral); }
+    .checkout-btn {
+      width:100%; background:var(--coral); color:var(--white); border:none;
+      padding:0.85rem; border-radius:50px; font-family:var(--font-display);
+      font-weight:700; font-size:0.95rem; cursor:pointer;
+      transition:background 0.2s, transform 0.15s; margin-bottom:0.75rem;
+    }
+    .checkout-btn:hover { background:var(--coral-dk); transform:translateY(-2px); }
+    .checkout-btn:disabled { background:#ccc; cursor:not-allowed; transform:none; }
+    .back-btn {
+      width:100%; background:var(--cream); color:var(--navy); border:1.5px solid var(--border);
+      padding:0.7rem; border-radius:50px; font-family:var(--font-display);
+      font-weight:700; font-size:0.875rem; cursor:pointer;
+      transition:background 0.2s; margin-bottom:0.75rem; display:none;
+    }
+    .back-btn:hover { background:var(--border); }
+    .continue-shopping {
+      display:block; text-align:center; font-size:0.85rem;
+      color:var(--coral); font-weight:500; text-decoration:none; transition:color 0.2s;
+    }
+    .continue-shopping:hover { color:var(--coral-dk); }
+
+    /* Cart items mini-summary in address step */
+    .cart-mini-summary { padding:1rem 1.5rem 0; }
+    .cart-mini-summary h4 {
+      font-family:var(--font-display); font-size:0.82rem; font-weight:700;
+      color:var(--grey); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.75rem;
+    }
+    .mini-item {
+      display:flex; align-items:center; gap:0.6rem;
+      padding:0.5rem 0; border-bottom:1px solid var(--border);
+    }
+    .mini-item:last-child { border-bottom:none; }
+    .mini-item-emoji { font-size:1.1rem; width:28px; text-align:center; flex-shrink:0; }
+    .mini-item-name { flex:1; font-size:0.82rem; font-weight:600; color:var(--navy); font-family:var(--font-display); }
+    .mini-item-qty { font-size:0.75rem; color:var(--grey); }
+    .mini-item-price { font-size:0.82rem; font-weight:700; color:var(--coral); flex-shrink:0; }
+
+    .promo-box { margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--border); }
+    .promo-box label {
+      font-size:0.8rem; font-weight:600; color:var(--navy);
+      display:block; margin-bottom:0.5rem; font-family:var(--font-display);
+    }
+    .promo-input-row { display:flex; gap:0.5rem; }
+    .promo-input-row input {
+      flex:1; border:1.5px solid var(--border); border-radius:8px;
+      padding:0.5rem 0.75rem; font-size:0.875rem; outline:none;
+      font-family:var(--font-body); background:var(--cream);
+      transition:border-color 0.2s;
+    }
+    .promo-input-row input:focus { border-color:var(--coral); background:var(--white); }
+    .promo-input-row button {
+      background:var(--navy); color:var(--white); border:none; border-radius:8px;
+      padding:0.5rem 1rem; font-size:0.8rem; font-family:var(--font-display);
+      font-weight:600; cursor:pointer; transition:background 0.2s; white-space:nowrap;
+    }
+    .promo-input-row button:hover { background:var(--coral); }
+    .promo-msg { font-size:0.8rem; margin-top:0.4rem; font-weight:500; min-height:1rem; }
+
+    .savings-badge {
+      display:inline-block; background:#e8f8ee; color:#1a7a40;
+      font-size:0.75rem; font-weight:600; padding:0.25rem 0.6rem;
+      border-radius:50px; margin-top:0.4rem;
+    }
+
+    /* Address review in summary */
+    .addr-review {
+      background:var(--cream); border-radius:8px;
+      padding:0.75rem 1rem; margin-bottom:1rem; font-size:0.82rem; color:var(--navy);
+      display:none; line-height:1.6; border-left:3px solid var(--coral);
+    }
+    .addr-review.show { display:block; }
+    .addr-review strong { font-family:var(--font-display); font-weight:700; display:block; margin-bottom:2px; }
+
+    /* Secure badge */
+    .secure-badge {
+      display:flex; align-items:center; justify-content:center;
+      gap:0.4rem; font-size:0.75rem; color:var(--grey); margin-top:0.75rem;
+    }
+    .secure-badge i { color:#27ae60; }
+
+    @media (max-width:860px) {
+      .cart-wrapper { grid-template-columns:1fr; }
+      .order-summary { position:static; }
+    }
+    @media (max-width:600px) {
+      .cart-wrapper { padding:0 1rem; margin:1.5rem auto; }
+      .page-header { padding:1.5rem 1rem; }
+      .address-form { grid-template-columns:1fr; }
+      .payment-grid { grid-template-columns:1fr; }
+      .checkout-stepper { padding:1rem; gap:0; }
+      .step span { display:none; }
+      .step-line { width:30px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo"><i class="fa-solid fa-bag-shopping"></i><span>MiniShop</span></div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="wishlist.html">Wishlist</a>
+      <a href="orders.html">Orders</a>
+      <a href="about.html">About</a>
+    </nav>
+    <div class="search-box">
+      <input type="text" placeholder="Search Products...">
+      <button><i class="fa-solid fa-search"></i></button>
+    </div>
+    <div class="user-section">
+      <a href="login.html"><i class="fa-solid fa-user"></i> Login</a>
+      <a href="cart.html" id="navCartLink">
+        <i class="fa-solid fa-cart-shopping"></i> Cart (<span id="navCartCount">0</span>)
+      </a>
+    </div>
+  </header>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1><i class="fa-solid fa-cart-shopping" style="color:var(--coral);margin-right:0.4rem;"></i> Checkout</h1>
+    <p id="cartSubtitle">Loading your items...</p>
+  </div>
+
+  <!-- STEPPER -->
+  <div class="checkout-stepper">
+    <div class="step active" id="step1">
+      <div class="step-num">1</div>
+      <span>Cart</span>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step" id="step2">
+      <div class="step-num">2</div>
+      <span>Delivery</span>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step" id="step3">
+      <div class="step-num">3</div>
+      <span>Payment</span>
+    </div>
+    <div class="step-line" id="line3"></div>
+    <div class="step" id="step4">
+      <div class="step-num"><i class="fa-solid fa-check" style="font-size:0.6rem;"></i></div>
+      <span>Confirm</span>
+    </div>
+  </div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="cart-wrapper">
+
+    <!-- LEFT PANELS -->
+    <div>
+      <!-- STEP 1: Cart Items -->
+      <div class="checkout-step-panel active" id="panel1">
+        <div class="cart-items-panel">
+          <div class="cart-panel-head">
+            <h2 id="itemCountLabel">0 Items</h2>
+            <button class="clear-cart-btn" onclick="clearCart()">
+              <i class="fa-solid fa-trash-can"></i> Clear All
+            </button>
+          </div>
+          <div id="cartItemsContainer"></div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Address + Delivery -->
+      <div class="checkout-step-panel" id="panel2">
+        <div class="address-panel">
+          <div class="address-panel-head">
+            <i class="fa-solid fa-location-dot"></i> Delivery Address
+          </div>
+
+          <!-- Saved address chips -->
+          <div class="saved-addresses">
+            <div class="addr-chip active" onclick="fillSavedAddress('home', this)">
+              <i class="fa-solid fa-house"></i> Home
+            </div>
+            <div class="addr-chip" onclick="fillSavedAddress('work', this)">
+              <i class="fa-solid fa-briefcase"></i> Work
+            </div>
+            <div class="addr-chip" onclick="fillSavedAddress('new', this)">
+              <i class="fa-solid fa-plus"></i> New Address
+            </div>
+          </div>
+
+          <!-- Address type -->
+          <div class="addr-type-row">
+            <button class="addr-type-btn active" id="atype-home" onclick="setAddrType('home', this)">
+              <i class="fa-solid fa-house"></i> Home
+            </button>
+            <button class="addr-type-btn" id="atype-work" onclick="setAddrType('work', this)">
+              <i class="fa-solid fa-briefcase"></i> Work
+            </button>
+            <button class="addr-type-btn" id="atype-other" onclick="setAddrType('other', this)">
+              <i class="fa-solid fa-location-dot"></i> Other
+            </button>
+          </div>
+
+          <!-- Address Form -->
+          <div class="address-form">
+            <div class="form-field">
+              <label>Full Name <span>*</span></label>
+              <input type="text" id="addr-name" placeholder="e.g. Rohit Sharma">
+              <span class="err-msg">Please enter your full name</span>
+            </div>
+            <div class="form-field">
+              <label>Mobile Number <span>*</span></label>
+              <input type="tel" id="addr-phone" placeholder="+91 XXXXX XXXXX" maxlength="13">
+              <span class="err-msg">Please enter a valid 10-digit mobile</span>
+            </div>
+            <div class="form-field full">
+              <label>Flat / House No. / Building / Street <span>*</span></label>
+              <input type="text" id="addr-line1" placeholder="e.g. 12B, Sunrise Apartments, MG Road">
+              <span class="err-msg">Please enter your address</span>
+            </div>
+            <div class="form-field full">
+              <label>Locality / Area / Landmark</label>
+              <input type="text" id="addr-line2" placeholder="e.g. Near City Mall, Andheri West">
+            </div>
+            <div class="form-field">
+              <label>City / Town <span>*</span></label>
+              <input type="text" id="addr-city" placeholder="e.g. Mumbai">
+              <span class="err-msg">Please enter your city</span>
+            </div>
+            <div class="form-field">
+              <label>PIN Code <span>*</span></label>
+              <input type="text" id="addr-pin" placeholder="e.g. 400001" maxlength="6">
+              <span class="err-msg">Please enter a valid 6-digit PIN</span>
+            </div>
+            <div class="form-field">
+              <label>State <span>*</span></label>
+              <select id="addr-state">
+                <option value="">— Select State —</option>
+                <option>Andhra Pradesh</option><option>Arunachal Pradesh</option>
+                <option>Assam</option><option>Bihar</option><option>Chhattisgarh</option>
+                <option>Delhi</option><option>Goa</option><option>Gujarat</option>
+                <option>Haryana</option><option>Himachal Pradesh</option>
+                <option>Jharkhand</option><option>Karnataka</option><option>Kerala</option>
+                <option>Madhya Pradesh</option><option selected>Maharashtra</option>
+                <option>Manipur</option><option>Meghalaya</option><option>Mizoram</option>
+                <option>Nagaland</option><option>Odisha</option><option>Punjab</option>
+                <option>Rajasthan</option><option>Sikkim</option><option>Tamil Nadu</option>
+                <option>Telangana</option><option>Tripura</option><option>Uttar Pradesh</option>
+                <option>Uttarakhand</option><option>West Bengal</option>
+              </select>
+              <span class="err-msg">Please select your state</span>
+            </div>
+            <div class="form-field">
+              <label>Alternate Phone</label>
+              <input type="tel" id="addr-alt-phone" placeholder="Optional">
+            </div>
+            <div class="form-field full">
+              <label>Delivery Instructions</label>
+              <input type="text" id="addr-notes" placeholder="e.g. Leave with security, Ring twice">
+            </div>
+          </div>
+
+          <!-- Delivery Options -->
+          <div class="delivery-options">
+            <h4>Choose Delivery Speed</h4>
+            <label class="delivery-opt selected" id="dopt-standard">
+              <input type="radio" name="delivery" value="standard" checked onchange="selectDelivery(this)">
+              <div class="delivery-opt-info">
+                <div class="delivery-opt-title"><i class="fa-solid fa-truck" style="color:var(--coral);margin-right:4px;"></i> Standard Delivery</div>
+                <div class="delivery-opt-sub">3–5 business days</div>
+              </div>
+              <div class="delivery-opt-price" id="price-standard">FREE</div>
+            </label>
+            <label class="delivery-opt" id="dopt-express">
+              <input type="radio" name="delivery" value="express" onchange="selectDelivery(this)">
+              <div class="delivery-opt-info">
+                <div class="delivery-opt-title"><i class="fa-solid fa-bolt" style="color:#f59e0b;margin-right:4px;"></i> Express Delivery</div>
+                <div class="delivery-opt-sub">Next business day</div>
+              </div>
+              <div class="delivery-opt-price">₹99</div>
+            </label>
+            <label class="delivery-opt" id="dopt-sameday">
+              <input type="radio" name="delivery" value="sameday" onchange="selectDelivery(this)">
+              <div class="delivery-opt-info">
+                <div class="delivery-opt-title"><i class="fa-solid fa-rocket" style="color:#8b5cf6;margin-right:4px;"></i> Same Day</div>
+                <div class="delivery-opt-sub">Order before 12 PM · Selected cities</div>
+              </div>
+              <div class="delivery-opt-price">₹199</div>
+            </label>
+          </div>
+
+          <!-- Cart mini summary -->
+          <div class="cart-mini-summary">
+            <h4>Items in this order</h4>
+            <div id="miniItemsList"></div>
+          </div>
+
+          <div style="padding:1rem 1.5rem 1.5rem;">
+            <button class="checkout-btn" onclick="proceedToPayment()" style="margin-bottom:0;">
+              <i class="fa-solid fa-lock"></i> Continue to Payment
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Payment -->
+      <div class="checkout-step-panel" id="panel3">
+        <div class="address-panel">
+          <div class="address-panel-head">
+            <i class="fa-solid fa-credit-card"></i> Payment Method
+          </div>
+          <div class="payment-options">
+            <h4>Select how you'd like to pay</h4>
+            <div class="payment-grid">
+              <label class="pay-opt selected" onclick="selectPayment(this)">
+                <input type="radio" name="payment" value="upi" checked>
+                <i class="fa-solid fa-mobile-screen"></i>
+                <span class="pay-opt-label">UPI / QR</span>
+              </label>
+              <label class="pay-opt" onclick="selectPayment(this)">
+                <input type="radio" name="payment" value="card">
+                <i class="fa-solid fa-credit-card"></i>
+                <span class="pay-opt-label">Credit / Debit Card</span>
+              </label>
+              <label class="pay-opt" onclick="selectPayment(this)">
+                <input type="radio" name="payment" value="netbanking">
+                <i class="fa-solid fa-building-columns"></i>
+                <span class="pay-opt-label">Net Banking</span>
+              </label>
+              <label class="pay-opt" onclick="selectPayment(this)">
+                <input type="radio" name="payment" value="emi">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span class="pay-opt-label">EMI (0% on cards)</span>
+              </label>
+              <label class="pay-opt" onclick="selectPayment(this)">
+                <input type="radio" name="payment" value="wallet">
+                <i class="fa-solid fa-wallet"></i>
+                <span class="pay-opt-label">MiniShop Wallet</span>
+              </label>
+              <label class="pay-opt" onclick="selectPayment(this)">
+                <input type="radio" name="payment" value="cod">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <span class="pay-opt-label">Cash on Delivery</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Delivery address review -->
+          <div style="padding:0 1.5rem 1rem;">
+            <div style="font-family:var(--font-display);font-size:0.82rem;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.6rem;">
+              Delivering to
+            </div>
+            <div id="addrReviewBox" class="addr-review show">Loading...</div>
+            <button onclick="goToStep(2)" style="background:none;border:none;color:var(--coral);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:var(--font-display);">
+              <i class="fa-solid fa-pen"></i> Change Address
+            </button>
+          </div>
+
+          <div style="padding:0 1.5rem 1.5rem;">
+            <button class="checkout-btn" onclick="placeOrder()" style="margin-bottom:0;">
+              <i class="fa-solid fa-lock"></i> Place Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Summary -->
+    <div class="order-summary">
+      <h2>Order Summary</h2>
+      <div class="summary-row"><span>Subtotal</span><span id="summSubtotal">₹0</span></div>
+      <div class="summary-row"><span>Discount</span><span id="summDiscount" style="color:#27ae60;">-₹0</span></div>
+      <div class="summary-row"><span>Delivery</span><span id="summDelivery">FREE</span></div>
+      <hr class="summary-divider">
+      <div class="summary-total"><span>Total</span><span id="summTotal">₹0</span></div>
+      <div id="savingsBadgeWrap"></div>
+
+      <button class="checkout-btn" id="checkoutBtn" onclick="handleMainBtn()">
+        Proceed to Checkout
+      </button>
+      <button class="back-btn" id="backBtn" onclick="goBack()">
+        ← Go Back
+      </button>
+      <a href="index.html" class="continue-shopping">← Continue Shopping</a>
+
+      <div class="promo-box" id="promoBoxWrap">
+        <label>Promo Code</label>
+        <div class="promo-input-row">
+          <input type="text" id="promoInput" placeholder="e.g. SAVE10">
+          <button onclick="applyPromo()">Apply</button>
+        </div>
+        <p class="promo-msg" id="promoMsg"></p>
+      </div>
+
+      <div class="secure-badge">
+        <i class="fa-solid fa-shield-halved"></i> 100% Secure Checkout
+      </div>
+    </div>
+  </div>
+
+  <div id="cart-toast"></div>
+  <script src="script.js"></script>
+  <script>
+    // ── Promo codes ──
+    const PROMO_CODES = { SAVE10:10, MINI20:20 };
+    const FLAT_CODES  = { FLAT200:200 };
+
+    // ── Demo products fallback ──
+    const DEMO_PRODUCTS = [
+      { id:1, name:'Wireless Headphones', price:2499, emoji:'🎧', qty:1 },
+      { id:2, name:'Smart Watch',         price:1999, emoji:'⌚', qty:2 },
+      { id:3, name:'Running Shoes',       price:1099, emoji:'👟', qty:1 },
+    ];
+
+    const SAVED_ADDRESSES = {
+      home: { name:'Enter Name', phone:'Enter Phone', line1:'Address Line 1', line2:'Address Line 2', city:'Enter City', pin:'Enter Pin', state:'Enter State', type:'home' },
+      work: { name:'Enter Name', phone:'Enter Phone', line1:'Address Line 1', line2:'Address Line 2', city:'Enter City', pin:'Enter Pin', state:'Enter State', type:'work' },
+    };
+
+    let cart = [], promoDiscount = 0, currentStep = 1;
+    let deliveryFee = 0, selectedPayment = 'upi', addrType = 'home', deliveryType = 'standard';
+
+    // ── Load/Save ──
+    function loadCart() {
+      // Support both minishop_cart (script.js) and ms_cart (shared.js)
+      try {
+        const a = localStorage.getItem('minishop_cart');
+        const b = localStorage.getItem('ms_cart');
+        if (a) { cart = JSON.parse(a); }
+        else if (b) {
+          // shared.js stores ids only — expand with PRODUCTS if available
+          const ids = JSON.parse(b);
+          if (window.PRODUCTS) {
+            cart = ids.map(i => {
+              const p = PRODUCTS.find(x => x.id === i.id);
+              return p ? { id:p.id, name:p.name, price:p.price, emoji:'🛍️', qty:i.qty, imgSrc:p.img } : null;
+            }).filter(Boolean);
+          } else { cart = [...DEMO_PRODUCTS]; }
+        } else { cart = [...DEMO_PRODUCTS]; }
+      } catch { cart = [...DEMO_PRODUCTS]; }
+    }
+    function saveCart() {
+      localStorage.setItem('minishop_cart', JSON.stringify(cart));
+      // Also keep ms_cart in sync
+      localStorage.setItem('ms_cart', JSON.stringify(cart.map(i => ({ id:i.id, qty:i.qty }))));
+    }
+
+    function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN'); }
+
+    // ── Stepper UI ──
+    function goToStep(n) {
+      currentStep = n;
+      for (let i = 1; i <= 4; i++) {
+        const s = document.getElementById('step' + i);
+        s.classList.remove('active','done');
+        if (i < n) s.classList.add('done');
+        else if (i === n) s.classList.add('active');
+        if (i < 4) {
+          const l = document.getElementById('line' + i);
+          l.classList.toggle('done', i < n);
+        }
+        const p = document.getElementById('panel' + i);
+        if (p) p.classList.toggle('active', i === n);
+      }
+      // Update right panel buttons
+      document.getElementById('checkoutBtn').style.display = n >= 3 ? 'none' : 'block';
+      document.getElementById('backBtn').style.display = n > 1 ? 'block' : 'none';
+      document.getElementById('promoBoxWrap').style.display = n === 1 ? 'block' : 'none';
+      // Update checkout button text
+      const btn = document.getElementById('checkoutBtn');
+      if (n === 1) btn.textContent = 'Proceed to Checkout';
+      if (n === 2) btn.textContent = 'Continue to Payment';
+      // Refresh address review
+      if (n === 3) renderAddrReview();
+      renderSummary();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handleMainBtn() {
+      if (currentStep === 1) {
+        if (!cart.length) { showToast('Your cart is empty!'); return; }
+        goToStep(2);
+      } else if (currentStep === 2) {
+        proceedToPayment();
+      }
+    }
+
+    function goBack() {
+      if (currentStep > 1) goToStep(currentStep - 1);
+    }
+
+    // ── Render Step 1 ──
+    function renderCart() {
+      const container = document.getElementById('cartItemsContainer');
+      const navCount  = document.getElementById('navCartCount');
+      const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+      navCount.textContent = totalItems;
+      document.title = `Cart (${totalItems}) — MiniShop`;
+      document.getElementById('itemCountLabel').textContent = `${totalItems} Item${totalItems !== 1 ? 's' : ''}`;
+      document.getElementById('cartSubtitle').textContent = totalItems
+        ? `You have ${totalItems} item${totalItems !== 1 ? 's' : ''} in your cart.`
+        : 'Your cart is empty.';
+
+      if (!cart.length) {
+        container.innerHTML = `<div class="cart-empty">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <h3>Your cart is empty</h3>
+          <p>Looks like you haven't added anything yet.</p>
+          <a href="index.html">Browse Products</a></div>`;
+        document.getElementById('checkoutBtn').disabled = true;
+        renderSummary(); return;
+      }
+      document.getElementById('checkoutBtn').disabled = false;
+      container.innerHTML = cart.map((item, idx) => {
+        const imgHtml = item.imgSrc
+          ? `<img src="${item.imgSrc}" alt="${item.name}" onerror="this.style.display='none'">`
+          : item.emoji || '📦';
+        return `<div class="cart-item" id="cartItem_${idx}">
+          <div class="cart-item-img">${imgHtml}</div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-unit">${fmt(item.price)} each</div>
+            <div class="cart-item-subtotal">${fmt(item.price * item.qty)}</div>
+          </div>
+          <div class="qty-control">
+            <button onclick="changeQty(${idx},-1)">−</button>
+            <span class="qty-val">${item.qty}</span>
+            <button onclick="changeQty(${idx},+1)">+</button>
+          </div>
+          <button class="remove-btn" onclick="removeItem(${idx})" title="Remove">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>`;
+      }).join('');
+      renderSummary();
+    }
+
+    function renderMiniItems() {
+      document.getElementById('miniItemsList').innerHTML = cart.map(item => `
+        <div class="mini-item">
+          <span class="mini-item-emoji">${item.emoji || '📦'}</span>
+          <span class="mini-item-name">${item.name}</span>
+          <span class="mini-item-qty">×${item.qty}</span>
+          <span class="mini-item-price">${fmt(item.price * item.qty)}</span>
+        </div>`).join('');
+    }
+
+    function renderSummary() {
+      const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const total    = Math.max(0, subtotal - promoDiscount + deliveryFee);
+      document.getElementById('summSubtotal').textContent = fmt(subtotal);
+      document.getElementById('summDiscount').textContent = `-${fmt(promoDiscount)}`;
+      document.getElementById('summDelivery').textContent = deliveryFee === 0 ? 'FREE' : fmt(deliveryFee);
+      document.getElementById('summTotal').textContent    = fmt(total);
+      const badge = document.getElementById('savingsBadgeWrap');
+      badge.innerHTML = promoDiscount > 0 ? `<span class="savings-badge">🎉 You're saving ${fmt(promoDiscount)}!</span>` : '';
+    }
+
+    // ── Cart actions ──
+    function changeQty(idx, delta) {
+      cart[idx].qty = Math.max(1, cart[idx].qty + delta);
+      saveCart(); renderCart();
+    }
+    function removeItem(idx) {
+      const name = cart[idx].name;
+      cart.splice(idx, 1); saveCart(); renderCart();
+      showToast(`"${name}" removed from cart`);
+    }
+    function clearCart() {
+      if (!cart.length) return;
+      if (!confirm('Clear all items from your cart?')) return;
+      cart = []; promoDiscount = 0; saveCart(); renderCart();
+      showToast('Cart cleared');
+    }
+    function applyPromo() {
+      const code = document.getElementById('promoInput').value.trim().toUpperCase();
+      const msg  = document.getElementById('promoMsg');
+      if (!code) { msg.style.color='#e74c3c'; msg.textContent='Please enter a promo code.'; return; }
+      const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      if (FLAT_CODES[code] !== undefined) {
+        promoDiscount = FLAT_CODES[code];
+        msg.style.color = '#27ae60';
+        msg.textContent = `✓ ${fmt(promoDiscount)} flat discount applied!`;
+      } else if (PROMO_CODES[code]) {
+        promoDiscount = Math.round(subtotal * PROMO_CODES[code] / 100);
+        msg.style.color = '#27ae60';
+        msg.textContent = `✓ ${PROMO_CODES[code]}% off — saving ${fmt(promoDiscount)}!`;
+      } else {
+        promoDiscount = 0;
+        msg.style.color = '#e74c3c';
+        msg.textContent = '✗ Invalid code. Try SAVE10 or MINI20.';
+      }
+      renderSummary();
+    }
+
+    // ── Address helpers ──
+    function fillSavedAddress(key, chip) {
+      document.querySelectorAll('.addr-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      if (key === 'new') { clearAddressForm(); return; }
+      const a = SAVED_ADDRESSES[key];
+      if (!a) return;
+      document.getElementById('addr-name').value   = a.name;
+      document.getElementById('addr-phone').value  = a.phone;
+      document.getElementById('addr-line1').value  = a.line1;
+      document.getElementById('addr-line2').value  = a.line2;
+      document.getElementById('addr-city').value   = a.city;
+      document.getElementById('addr-pin').value    = a.pin;
+      document.getElementById('addr-state').value  = a.state;
+      document.getElementById('addr-alt-phone').value = '';
+      document.getElementById('addr-notes').value  = '';
+      setAddrType(a.type, document.getElementById('atype-' + a.type));
+    }
+    function clearAddressForm() {
+      ['addr-name','addr-phone','addr-line1','addr-line2','addr-city','addr-pin','addr-alt-phone','addr-notes'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('addr-state').value = '';
+    }
+    function setAddrType(type, btn) {
+      addrType = type;
+      document.querySelectorAll('.addr-type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    function selectDelivery(radio) {
+      deliveryType = radio.value;
+      const fees = { standard:0, express:99, sameday:199 };
+      deliveryFee = fees[deliveryType] || 0;
+      document.querySelectorAll('.delivery-opt').forEach(o => {
+        o.classList.toggle('selected', o.querySelector('input').value === deliveryType);
+      });
+      renderSummary();
+    }
+    function selectPayment(label) {
+      selectedPayment = label.querySelector('input').value;
+      document.querySelectorAll('.pay-opt').forEach(o => o.classList.remove('selected'));
+      label.classList.add('selected');
+    }
+
+    // ── Validation ──
+    function validateAddress() {
+      let valid = true;
+      const checks = [
+        { id:'addr-name',  test: v => v.trim().length >= 2,                    msg:'Please enter your full name' },
+        { id:'addr-phone', test: v => /^[+\d\s]{10,13}$/.test(v.trim()),       msg:'Please enter a valid 10-digit mobile' },
+        { id:'addr-line1', test: v => v.trim().length >= 5,                    msg:'Please enter your address' },
+        { id:'addr-city',  test: v => v.trim().length >= 2,                    msg:'Please enter your city' },
+        { id:'addr-pin',   test: v => /^\d{6}$/.test(v.trim()),                msg:'Please enter a valid 6-digit PIN' },
+        { id:'addr-state', test: v => v !== '',                                 msg:'Please select your state' },
+      ];
+      checks.forEach(c => {
+        const el = document.getElementById(c.id);
+        const field = el.closest('.form-field');
+        const errEl = field.querySelector('.err-msg');
+        if (!c.test(el.value)) {
+          field.classList.add('has-error');
+          errEl.textContent = c.msg;
+          valid = false;
+        } else {
+          field.classList.remove('has-error');
+        }
+      });
+      return valid;
+    }
+
+    function proceedToPayment() {
+      if (!validateAddress()) {
+        showToast('Please fill all required fields.');
+        return;
+      }
+      renderAddrReview();
+      renderMiniItems();
+      goToStep(3);
+    }
+
+    function renderAddrReview() {
+      const box = document.getElementById('addrReviewBox');
+      if (!box) return;
+      const v = id => document.getElementById(id)?.value || '';
+      const typeIcon = { home:'🏠', work:'💼', other:'📍' };
+      box.innerHTML = `<strong>${typeIcon[addrType] || '📍'} ${v('addr-name')} · ${v('addr-phone')}</strong>
+        ${v('addr-line1')}${v('addr-line2') ? ', ' + v('addr-line2') : ''}, ${v('addr-city')}, ${v('addr-state')} — ${v('addr-pin')}
+        ${v('addr-notes') ? '<br><span style="color:var(--grey);font-size:0.75rem;">Note: ' + v('addr-notes') + '</span>' : ''}`;
+    }
+
+    // ── Place Order ──
+    function placeOrder() {
+      const v = id => document.getElementById(id)?.value || '';
+      const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const total    = Math.max(0, subtotal - promoDiscount + deliveryFee);
+
+      const newOrder = {
+        id:       'ORD' + Date.now(),
+        date:     new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }),
+        items:    [...cart],
+        total,
+        status:   'processing',
+        delivery: {
+          type:  deliveryType,
+          fee:   deliveryFee,
+        },
+        payment: selectedPayment,
+        address: {
+          name:     v('addr-name'),
+          phone:    v('addr-phone'),
+          line1:    v('addr-line1'),
+          line2:    v('addr-line2'),
+          city:     v('addr-city'),
+          pin:      v('addr-pin'),
+          state:    v('addr-state'),
+          altPhone: v('addr-alt-phone'),
+          notes:    v('addr-notes'),
+          type:     addrType,
+        },
+      };
+
+      // Save to both storage keys
+      const orders = JSON.parse(localStorage.getItem('minishop_orders') || '[]');
+      orders.unshift(newOrder);
+      localStorage.setItem('minishop_orders', JSON.stringify(orders));
+      localStorage.setItem('ms_orders', JSON.stringify(orders));
+
+      // Clear cart
+      cart = []; saveCart(); promoDiscount = 0;
+      renderCart(); renderSummary();
+
+      showToast('🎉 Order placed! Redirecting to Orders...');
+      setTimeout(() => { window.location.href = 'orders.html'; }, 1800);
+    }
+
+    // ── Boot ──
+    loadCart();
+    renderCart();
+    // Pre-fill with home address
+    setTimeout(() => fillSavedAddress('home', document.querySelector('.addr-chip.active')), 100);
+  </script>
+  
+</body>
+</html
+
+

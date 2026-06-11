@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wishlist — MiniShop</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .page-header {
+      background: var(--navy);
+      color: var(--white);
+      padding: 2.5rem 2.5rem 2rem;
+    }
+    .page-header h1 { font-family: var(--font-display); font-size: 1.9rem; font-weight: 800; }
+    .page-header p  { color: rgba(255,255,255,0.6); margin-top: 0.3rem; font-size: 0.9rem; }
+
+    .wishlist-page {
+      max-width: 1180px;
+      margin: 2.5rem auto;
+      padding: 0 2.5rem;
+    }
+
+    /* Toolbar */
+    .wl-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+    }
+    .wl-count-label {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .wl-actions { display: flex; gap: 0.65rem; flex-wrap: wrap; }
+    .wl-action-btn {
+      padding: 0.45rem 1.1rem;
+      border-radius: 50px;
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      border: none;
+    }
+    .wl-action-btn:hover { transform: translateY(-1px); }
+    .btn-add-all { background: var(--coral); color: var(--white); }
+    .btn-add-all:hover { background: var(--coral-dk); }
+    .btn-share { background: var(--navy); color: var(--white); }
+    .btn-clear { background: var(--cream); color: #e74c3c; border: 1px solid #e74c3c; }
+    .btn-clear:hover { background: #ffeaea; }
+
+    /* Sort bar */
+    .sort-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .sort-bar label { font-size: 0.82rem; color: var(--grey); font-weight: 500; }
+    .sort-bar select {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 0.4rem 0.7rem;
+      font-size: 0.82rem;
+      font-family: var(--font-body);
+      background: var(--white);
+      color: var(--navy);
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .sort-bar select:focus { border-color: var(--coral); }
+
+    /* Wishlist Grid */
+    .wl-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* Wishlist Card */
+    .wl-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: transform 0.22s, box-shadow 0.22s;
+      animation: fadeSlideIn 0.3s ease;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .wl-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 36px rgba(15,27,45,0.13);
+    }
+
+    .wl-card-img {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      background: var(--cream);
+      transition: transform 0.3s;
+    }
+    .wl-card:hover .wl-card-img { transform: scale(1.04); }
+    .wl-card-img img { width: 100%; height: 170px; object-fit: cover; }
+
+    .wl-card-body { padding: 0.8rem 1rem; flex: 1; display: flex; flex-direction: column; }
+    .wl-card-name {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .wl-card-rating { font-size: 0.78rem; color: var(--grey); margin-bottom: 0.4rem; }
+    .wl-card-price { font-size: 1.05rem; font-weight: 700; color: var(--coral); margin-bottom: 0.3rem; }
+    .wl-card-added { font-size: 0.75rem; color: var(--grey); margin-bottom: 0.75rem; }
+    .wl-card-actions { display: flex; gap: 0.5rem; margin-top: auto; }
+
+    .wl-btn-cart {
+      flex: 1;
+      background: var(--navy);
+      color: var(--white);
+      border: none;
+      padding: 0.52rem 0;
+      border-radius: 50px;
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .wl-btn-cart:hover { background: var(--coral); transform: scale(1.02); }
+
+    .wl-btn-remove {
+      background: var(--cream);
+      color: #e74c3c;
+      border: 1px solid #e74c3c;
+      width: 34px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wl-btn-remove:hover { background: #ffeaea; }
+
+    /* Remove pill badge */
+    .wl-remove-heart {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.92);
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      transition: transform 0.2s;
+    }
+    .wl-remove-heart:hover { transform: scale(1.15); }
+    .wl-remove-heart i { font-size: 0.95rem; color: var(--coral); }
+
+    /* Urgency badge */
+    .urgency-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--coral);
+      color: var(--white);
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 50px;
+      font-family: var(--font-display);
+    }
+    .sale-badge { background: #27ae60; }
+
+    /* Empty state */
+    .wl-empty {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5rem 2rem;
+      color: var(--grey);
+      gap: 0.75rem;
+      text-align: center;
+    }
+    .wl-empty i { font-size: 3.5rem; color: #ddd; }
+    .wl-empty h3 { font-family: var(--font-display); font-size: 1.1rem; color: var(--navy); font-weight: 700; }
+    .wl-empty a {
+      margin-top: 0.5rem;
+      display: inline-block;
+      background: var(--coral);
+      color: var(--white);
+      padding: 0.6rem 1.5rem;
+      border-radius: 50px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .wl-empty a:hover { background: var(--coral-dk); }
+
+    /* Add-from-index integration note */
+    .wl-tip {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-size: 0.82rem;
+      color: #856404;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    @media (max-width: 480px) {
+      .wishlist-page { padding: 0 1rem; margin: 1.5rem auto; }
+      .page-header { padding: 1.5rem 1rem; }
+      .wl-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo"><i class="fa-solid fa-bag-shopping"></i><span>MiniShop</span></div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="wishlist.html">Wishlist</a>
+      <a href="orders.html">Orders</a>
+      <a href="about.html">About</a>
+    </nav>
+    <div class="search-box">
+      <input type="text" placeholder="Search Products...">
+      <button><i class="fa-solid fa-search"></i></button>
+    </div>
+    <div class="user-section">
+      <a href="login.html"><i class="fa-solid fa-user"></i> Login</a>
+      <a href="cart.html"><i class="fa-solid fa-cart-shopping"></i> Cart</a>
+    </div>
+  </header>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1><i class="fa-solid fa-heart" style="color:var(--coral); margin-right:0.4rem;"></i> My Wishlist</h1>
+    <p id="wlSubtitle">Loading your saved items...</p>
+  </div>
+
+  <!-- WISHLIST PAGE -->
+  <div class="wishlist-page">
+
+    <div class="wl-tip">
+      <i class="fa-solid fa-circle-info"></i>
+      Tip: Click the ♡ heart icon on any product in the Home page to save it here instantly!
+    </div>
+
+    <!-- Toolbar -->
+    <div class="wl-toolbar">
+      <div class="wl-count-label" id="wlCountLabel">0 Saved Items</div>
+      <div class="wl-actions">
+        <button class="wl-action-btn btn-add-all" onclick="addAllToCart()">
+          <i class="fa-solid fa-cart-plus"></i> Add All to Cart
+        </button>
+        <button class="wl-action-btn btn-share" onclick="shareWishlist()">
+          <i class="fa-solid fa-share-nodes"></i> Share
+        </button>
+        <button class="wl-action-btn btn-clear" onclick="clearWishlist()">
+          <i class="fa-solid fa-trash-can"></i> Clear All
+        </button>
+      </div>
+    </div>
+
+    <!-- Sort -->
+    <div class="sort-bar">
+      <label for="wlSort">Sort by:</label>
+      <select id="wlSort" onchange="sortWishlist(this.value)">
+        <option value="recent">Recently Added</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="name">Name A–Z</option>
+        <option value="rating">Rating</option>
+      </select>
+    </div>
+
+    <!-- Grid -->
+    <div class="wl-grid" id="wlGrid"></div>
+  </div>
+
+  <div id="cart-toast"></div>
+  <script src="script.js"></script>
+  <script>
+    const DEFAULT_WISHLIST = [
+      { id: 1, name: 'Wireless Headphones', price: 2499, emoji: '🎧', rating: 4.2, addedOn: '2025-06-01', badge: null, imgSrc: 'wireless.jpg' },
+      { id: 2, name: 'Smart Watch',         price: 1999, emoji: '⌚', rating: 4.0, addedOn: '2025-06-03', badge: 'Sale', imgSrc: 'smartwatch.jpg' },
+      { id: 3, name: 'DSLR Camera',         price: 10099, emoji: '📷', rating: 4.5, addedOn: '2025-06-05', badge: 'Popular', imgSrc: 'cameras.jpg' },
+      { id: 4, name: 'Travel Backpack',     price: 1999, emoji: '🎒', rating: 4.1, addedOn: '2025-06-07', badge: null, imgSrc: 'backpack.jpg' },
+    ];
+
+    let wishlist = [];
+
+    function loadWishlist() {
+      try {
+        const saved = localStorage.getItem('minishop_wishlist');
+        wishlist = saved ? JSON.parse(saved) : [...DEFAULT_WISHLIST];
+        if (!wishlist.length) wishlist = [...DEFAULT_WISHLIST];
+      } catch { wishlist = [...DEFAULT_WISHLIST]; }
+    }
+
+    function saveWishlist() {
+      localStorage.setItem('minishop_wishlist', JSON.stringify(wishlist));
+    }
+
+    function fmt(n) { return '₹' + Number(n).toLocaleString('en-IN'); }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    function renderWishlist() {
+      const grid = document.getElementById('wlGrid');
+      const countLabel = document.getElementById('wlCountLabel');
+      const subtitle   = document.getElementById('wlSubtitle');
+
+      countLabel.textContent = `${wishlist.length} Saved Item${wishlist.length !== 1 ? 's' : ''}`;
+      subtitle.textContent   = wishlist.length
+        ? `You have ${wishlist.length} item${wishlist.length !== 1 ? 's' : ''} saved.`
+        : 'Your wishlist is empty.';
+
+      if (!wishlist.length) {
+        grid.innerHTML = `
+          <div class="wl-empty">
+            <i class="fa-solid fa-heart-crack"></i>
+            <h3>Your wishlist is empty</h3>
+            <p>Save items you love to come back to them anytime.</p>
+            <a href="index.html">Explore Products</a>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = wishlist.map((item, idx) => {
+        const badgeHtml = item.badge
+          ? `<span class="urgency-badge ${item.badge === 'Sale' ? 'sale-badge' : ''}">${item.badge}</span>`
+          : '';
+        const imgHtml = item.imgSrc
+          ? `<img src="${item.imgSrc}" alt="${item.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><span style="display:none;width:100%;height:170px;align-items:center;justify-content:center;font-size:4rem;">${item.emoji}</span>`
+          : `<span style="font-size:4rem;">${item.emoji}</span>`;
+
+        const stars = '★'.repeat(Math.floor(item.rating)) + (item.rating % 1 >= 0.5 ? '½' : '') + '☆'.repeat(5 - Math.ceil(item.rating));
+
+        return `
+          <div class="wl-card" id="wlCard_${idx}">
+            ${badgeHtml}
+            <div class="wl-card-img">${imgHtml}</div>
+            <div class="wl-remove-heart" onclick="removeFromWishlist(${idx})" title="Remove from wishlist">
+              <i class="fa-solid fa-heart"></i>
+            </div>
+            <div class="wl-card-body">
+              <div class="wl-card-name">${item.name}</div>
+              <div class="wl-card-rating">${stars} (${item.rating})</div>
+              <div class="wl-card-price">${fmt(item.price)}</div>
+              <div class="wl-card-added"><i class="fa-regular fa-clock"></i> Saved ${formatDate(item.addedOn)}</div>
+              <div class="wl-card-actions">
+                <button class="wl-btn-cart" onclick="addToCartFromWishlist(${idx}, this)">
+                  <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                </button>
+                <button class="wl-btn-remove" onclick="removeFromWishlist(${idx})" title="Remove">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function removeFromWishlist(idx) {
+      const name = wishlist[idx]?.name || 'Item';
+      wishlist.splice(idx, 1);
+      saveWishlist();
+      renderWishlist();
+      showToast(`Removed "${name}" from wishlist`);
+    }
+
+    function addToCartFromWishlist(idx, btn) {
+      const item = wishlist[idx];
+      if (!item) return;
+      const cart = JSON.parse(localStorage.getItem('minishop_cart') || '[]');
+      const existing = cart.find(c => c.name === item.name);
+      if (existing) existing.qty += 1;
+      else cart.push({ id: item.id, name: item.name, price: item.price, emoji: item.emoji, qty: 1 });
+      localStorage.setItem('minishop_cart', JSON.stringify(cart));
+
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Added!';
+      btn.style.background = '#27ae60';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fa-solid fa-cart-plus"></i> Add to Cart';
+        btn.style.background = '';
+      }, 1400);
+      showToast(`🛒 "${item.name}" added to cart`);
+    }
+
+    function addAllToCart() {
+      if (!wishlist.length) { showToast('Your wishlist is empty!'); return; }
+      const cart = JSON.parse(localStorage.getItem('minishop_cart') || '[]');
+      wishlist.forEach(item => {
+        const existing = cart.find(c => c.name === item.name);
+        if (existing) existing.qty += 1;
+        else cart.push({ id: item.id, name: item.name, price: item.price, emoji: item.emoji, qty: 1 });
+      });
+      localStorage.setItem('minishop_cart', JSON.stringify(cart));
+      showToast(`🛒 All ${wishlist.length} items added to cart!`);
+    }
+
+    function shareWishlist() {
+      const url = window.location.href;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => showToast('🔗 Link copied to clipboard!'));
+      } else {
+        showToast('Share link: ' + url);
+      }
+    }
+
+    function clearWishlist() {
+      if (!wishlist.length) return;
+      if (!confirm('Clear your entire wishlist?')) return;
+      wishlist = [];
+      saveWishlist();
+      renderWishlist();
+      showToast('Wishlist cleared');
+    }
+
+    function sortWishlist(mode) {
+      switch (mode) {
+        case 'price-asc':  wishlist.sort((a, b) => a.price - b.price); break;
+        case 'price-desc': wishlist.sort((a, b) => b.price - a.price); break;
+        case 'name':       wishlist.sort((a, b) => a.name.localeCompare(b.name)); break;
+        case 'rating':     wishlist.sort((a, b) => b.rating - a.rating); break;
+        case 'recent':
+        default:
+          wishlist.sort((a, b) => new Date(b.addedOn) - new Date(a.addedOn)); break;
+      }
+      renderWishlist();
+    }
+
+    // ── Integration with index.html toggleWishlist ──
+    // When heart is clicked on index.html, we store it in localStorage
+    // and sync here. Override the global toggleWishlist to persist.
+    window._origToggleWishlist = window.toggleWishlist;
+    window.toggleWishlist = function(el) {
+      const card = el.closest('.product-card');
+      const name = card?.querySelector('h3')?.textContent?.trim();
+      const priceText = card?.querySelector('.price')?.textContent?.trim() || '0';
+      const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
+      const ratingEl = card?.querySelector('.rating');
+      const ratingText = ratingEl?.textContent || '0';
+      const ratingMatch = ratingText.match(/\(([\d.]+)\)/);
+      const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 4.0;
+
+      el.classList.toggle('active');
+      const icon = el.querySelector('i');
+      if (!icon) return;
+
+      if (el.classList.contains('active')) {
+        icon.classList.replace('fa-regular', 'fa-solid');
+        // Add to wishlist storage
+        const wl = JSON.parse(localStorage.getItem('minishop_wishlist') || '[]');
+        if (!wl.find(w => w.name === name)) {
+          wl.push({ id: Date.now(), name, price, emoji: '🛍️', rating, addedOn: new Date().toISOString().slice(0,10), badge: null });
+          localStorage.setItem('minishop_wishlist', JSON.stringify(wl));
+        }
+        showToast('❤️ Saved to Wishlist');
+      } else {
+        icon.classList.replace('fa-solid', 'fa-regular');
+        const wl = JSON.parse(localStorage.getItem('minishop_wishlist') || '[]');
+        const updated = wl.filter(w => w.name !== name);
+        localStorage.setItem('minishop_wishlist', JSON.stringify(updated));
+        showToast('Removed from Wishlist');
+      }
+    };
+
+    loadWishlist();
+    renderWishlist();
+  </script>
+</body>
+</html>

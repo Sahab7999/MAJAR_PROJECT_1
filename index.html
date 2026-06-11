@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiniShop - Advanced E-Commerce Website</title>
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="navbar">
+
+    <div class="logo">
+      <i class="fa-solid fa-bag-shopping"></i>
+      <span>MiniShop</span>
+    </div>
+
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="wishlist.html">Wishlist</a>
+      <a href="orders.html">Orders</a>
+      <a href="about.html">About</a>
+    </nav>
+
+    <div class="search-box">
+      <input type="text" placeholder="Search Products...">
+      <button>
+        <i class="fa-solid fa-search"></i>
+      </button>
+    </div>
+
+    <div class="user-section">
+      <a href="login.html">
+        <i class="fa-solid fa-user"></i> Login
+      </a>
+      <a href="cart.html">
+        <i class="fa-solid fa-cart-shopping"></i> Cart (0)
+      </a>
+    </div>
+
+  </header>
+
+  <!-- ================= HERO SECTION ================= -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Shop Smarter, <span>Live Better</span></h1>
+      <p>Discover amazing deals on electronics, fashion, gadgets and lifestyle products.</p>
+      <a href="#products" class="btn">Shop Now</a>
+    </div>
+  </section>
+
+  <!-- ================= FEATURES ================= -->
+  <section class="features">
+
+    <div class="feature-card">
+      <i class="fa-solid fa-truck"></i>
+      <h3>Fast Delivery</h3>
+    </div>
+
+    <div class="feature-card">
+      <i class="fa-solid fa-shield"></i>
+      <h3>Secure Payment</h3>
+    </div>
+
+    <div class="feature-card">
+      <i class="fa-solid fa-rotate-left"></i>
+      <h3>Easy Returns</h3>
+    </div>
+
+    <div class="feature-card">
+      <i class="fa-solid fa-headset"></i>
+      <h3>24/7 Support</h3>
+    </div>
+
+  </section>
+
+  <!-- ================= PRODUCTS ================= -->
+  <section id="products">
+
+    <h2>Featured Products</h2>
+
+    <div class="product-grid">
+
+      <!-- ✅ FIX 2: Removed duplicate first card, all cards now consistent -->
+
+      <div class="product-card">
+        <a href="product.html">
+          <img src="wireless.jpg" alt="Wireless Headphones">
+          <h3>Wireless Headphones</h3>
+        </a>
+        <p class="price">₹2,499</p>
+        <div class="rating">★★★★☆ (4.2)</div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <!-- ✅ FIX 3: Removed broken [flipkart.com](...) markdown syntax, use real href -->
+        <a href="https://www.flipkart.com/search?q=wireless+headphones" target="_blank">
+          <p>See More on Flipkart</p>
+        </a>
+        <div class="wishlist-icon" onclick="toggleWishlist(this)" title="Add to Wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <a href="product.html">
+          <img src="running.jpg" alt="Running Shoes">
+          <h3>Running Shoes</h3>
+        </a>
+        <p class="price">₹1,099</p>
+        <div class="rating">★★★★☆ (4.3)</div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <a href="https://www.flipkart.com/search?q=running+shoes" target="_blank">
+          <p>See More on Flipkart</p>
+        </a>
+        <div class="wishlist-icon" onclick="toggleWishlist(this)" title="Add to Wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <a href="product.html">
+          <img src="smartwatch.jpg" alt="Smart Watch">
+          <h3>Smart Watch</h3>
+        </a>
+        <p class="price">₹1,999</p>
+        <div class="rating">★★★★☆ (4.0)</div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <a href="https://www.flipkart.com/search?q=smartwatch" target="_blank">
+          <p>See More on Flipkart</p>
+        </a>
+        <div class="wishlist-icon" onclick="toggleWishlist(this)" title="Add to Wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <a href="product.html">
+          <img src="backpack.jpg" alt="Travel Backpack">
+          <h3>Travel Backpack</h3>
+        </a>
+        <p class="price">₹1,999</p>
+        <div class="rating">★★★★☆ (4.1)</div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <a href="https://www.flipkart.com/search?q=travel+backpack" target="_blank">
+          <p>See More on Flipkart</p>
+        </a>
+        <div class="wishlist-icon" onclick="toggleWishlist(this)" title="Add to Wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <a href="product.html">
+          <img src="laptop.jpg" alt="Lightweight Laptop">
+          <h3>Lightweight Laptop</h3>
+        </a>
+        <p class="price">₹49,999</p>
+        <div class="rating">★★★★☆ (4.4)</div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <a href="https://www.flipkart.com/search?q=lightweight+laptop" target="_blank">
+          <p>See More on Flipkart</p>
+        </a>
+        <div class="wishlist-icon" onclick="toggleWishlist(this)" title="Add to Wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <a href="product.html">
+          <img src="cameras.jpg" alt="DSLR Camera">
+          <h3>DSLR Camera</h3>
+        </a>
+        <p class="price">₹10,099</p>
+        <div class="rating">★★★★★ (4.5)</div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <a href="https://www.flipkart.com/search?q=dslr+camera" target="_blank">
+          <p>See More on Flipkart</p>
+        </a>
+        <div class="wishlist-icon" onclick="toggleWishlist(this)" title="Add to Wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <a href="product.html">
+          <img src="smartphone.jpg" alt="Smart Phone">
+          <h3>Smart Phone</h3>
+        </a>
+        <p class="price">₹19,999</p>
+        <div class="rating">★★★★☆ (4.2)</div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <a href="https://www.flipkart.com/search?q=smartphone" target="_blank">
+          <p>See More on Flipkart</p>
+        </a>
+        <div class="wishlist-icon" onclick="toggleWishlist(this)" title="Add to Wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <a href="product.html">
+          <img src="electronics.jpg" alt="Electronics">
+          <h3>Electronics</h3>
+        </a>
+        <p class="price">₹999</p>
+        <div class="rating">★★★★☆ (4.0)</div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <a href="https://www.flipkart.com/search?q=electronics" target="_blank">
+          <p>See More on Flipkart</p>
+        </a>
+        <div class="wishlist-icon" onclick="toggleWishlist(this)" title="Add to Wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <a href="product.html">
+          <img src="kitchen.jpg" alt="Kitchen">
+          <h3>Kitchen</h3>
+        </a>
+        <p class="price">₹1,999</p>
+        <div class="rating">★★★★☆ (4.2)</div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <a href="https://www.flipkart.com/search?q=kitchen+set" target="_blank">
+          <p>See More on Flipkart</p>
+        </a>
+        <div class="wishlist-icon" onclick="toggleWishlist(this)" title="Add to Wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </div>
+      </div>
+
+       <div class="product-card">
+        <a href="product.html">
+          <img src="clothes.jpg" alt="clothes">
+          <h3>Clothes</h3>
+        </a>
+        <p class="price">₹999</p>
+        <div class="rating">★★★★☆ (4.2)</div>
+        <button class="add-to-cart-btn">Add to Cart</button>
+        <a href="https://www.flipkart.com/search?q=clothes+men&sid=clo%2Cash&as=on&as-show=on&otracker=AS_QueryStore_OrganicAutoSuggest_1_9_na_na_na&otracker1=AS_QueryStore_OrganicAutoSuggest_1_9_na_na_na&as-pos=1&as-type=RECENT&suggestionId=clothes+men%7CTopwear&requestId=9182fe62-8510-4c1f-a99a-f18e2bcac014&as-searchtext=clothes%20m">
+          <p>See More on Flipkart</p>
+        </a>
+        <div class="wishlist-icon" onclick="toggleWishlist(this)" title="Add to Wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= CONTACT ================= -->
+  <section class="contact-section" id="contact">
+    <h2>Contact Us</h2>
+    <div class="contact-container">
+      <p><i class="fa fa-envelope"></i> Email: <a href="mailto:support@minishop.com">support@minishop.com</a></p>
+      <p><i class="fa fa-phone"></i> Phone: <a href="tel:+911234567890">+91 12345 67890</a></p>
+      <p><i class="fa fa-map-marker-alt"></i> Address: 123 Tech Street, Mumbai, India</p>
+      <p><i class="fa fa-clock"></i> Business Hours: Mon – Sat, 9 AM – 9 PM</p>
+
+      <div class="social-links">
+        <!-- ✅ FIX 4: Removed broken [facebook.com](...) markdown syntax -->
+        <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+        <a href="https://twitter.com" target="_blank"><i class="fab fa-twitter"></i></a>
+      </div>
+
+      <!-- ✅ FIX 5: Contact form uses onsubmit handler instead of relying on type="submit" alone -->
+      <form class="contact-form" onsubmit="handleContactForm(event)">
+        <input type="text" placeholder="Your Name" required />
+        <input type="email" placeholder="Your Email" required />
+        <textarea placeholder="Your Message" rows="4" required></textarea>
+        <button type="submit">Send Message</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer>
+    <div class="foot-panel1">↑ Back to Top</div>
+
+    <div class="foot-panel2">
+      <ul>
+        <p>Get to Know Us</p>
+        <li><a href="#">About MiniShop</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Press Releases</a></li>
+        <li><a href="#">Blog</a></li>
+      </ul>
+      <ul>
+        <p>Shop with Us</p>
+        <li><a href="#">Categories</a></li>
+        <li><a href="#">Deals</a></li>
+        <li><a href="#">Gift Cards</a></li>
+        <li><a href="#">New Arrivals</a></li>
+      </ul>
+      <ul>
+        <p>Customer Service</p>
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">Returns</a></li>
+        <li><a href="#">Track Order</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+      <ul>
+        <p>Payments</p>
+        <li><a href="#">Payment Methods</a></li>
+        <li><a href="#">EMI Options</a></li>
+        <li><a href="#">Gift Cards</a></li>
+        <li><a href="#">Wallet</a></li>
+      </ul>
+    </div>
+
+    <div class="foot-panel4">
+      <div class="pages">
+        <a href="#">Conditions of Use</a>
+        <a href="#">Privacy Notice</a>
+        <a href="#">Your Ads Privacy Choice</a>
+      </div>
+      <div class="copyright">
+        &copy; 2025 MiniShop.com — All rights reserved
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
